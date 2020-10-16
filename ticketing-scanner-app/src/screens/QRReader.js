@@ -1,0 +1,63 @@
+import React, { Component } from "react";
+import QrReader from "react-qr-reader";
+import AppBar from "@material-ui/core/AppBar";
+import Toolbar from "@material-ui/core/Toolbar";
+import IconButton from "@material-ui/core/IconButton";
+import Typography from "@material-ui/core/Typography";
+import MenuIcon from '@material-ui/icons/Menu';
+
+class QRReader extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            delay: 300,
+            result: null
+        };
+        this.handleScan = this.handleScan.bind(this);
+    }
+    handleScan(data) {
+        if (data) {
+            console.log(data)
+            const obj= JSON.parse(data);
+            this.setState({
+                result: obj
+            });
+        }
+    }
+    handleError(err) {
+        console.error(err);
+    }
+    render() {
+        return (
+            <div>
+                <AppBar position="static">
+                    <Toolbar variant="dense">
+                        <IconButton edge="start" color="inherit" aria-label="menu">
+                            <MenuIcon />
+                        </IconButton>
+                        <Typography variant="h6" color="inherit">
+                            Pay & Go
+                        </Typography>
+                    </Toolbar>
+                </AppBar>
+                <h4>QR Code Scanner</h4>
+                <QrReader
+                    delay={this.state.delay}
+                    onError={this.handleError}
+                    onScan={this.handleScan}
+                    style={{  margin :10}}
+                />
+                {(this.state.result!==null)?<div>
+                    <p>Route : {this.state.result.routeId}</p>
+                    <p>Date : {this.state.result.date}</p>
+                    <p>Start Point : {this.state.result.startPoint}</p>
+                    <p>End Point : {this.state.result.endPoint}</p>
+                    <p>Ticket Amount : {this.state.result.ticketAmount}</p>
+                </div>:<p>Scan QR code inside the passenger ticket</p>}
+
+            </div>
+        );
+    }
+}
+
+export default QRReader;
