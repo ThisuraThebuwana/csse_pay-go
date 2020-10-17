@@ -115,4 +115,39 @@ router.delete('/:passengerId', (req,res,next)=>{
 
 });
 
+//passenger login
+router.get('/login/:username/:password', (req,res,next)=>{
+    const id = req.params.username;
+    const pw = req.params.password;
+    Passenger.find({username: id})
+        .exec()
+        .then(doc=>{
+            console.log(doc);
+            if(doc){
+                if(doc[0].password===pw){
+                    console.log("match");
+                    res.status(200).json({
+                        message: 'success'
+                    });
+                }else{
+                    console.log("not match");
+                    res.status(200).json({
+                        message: 'fail'
+                    });
+                }
+            }else{
+                res.status(404).json({
+                    message: 'No valid entry found for provided id'
+                });
+            }
+        })
+        .catch(err=>{
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });
+
+});
+
 module.exports = router;

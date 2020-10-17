@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import axios from "axios";
 
 class Login extends Component {
 
@@ -8,7 +9,9 @@ class Login extends Component {
 
         this.state = {
             username: '',
-            password: ''
+            password: '',
+            isLoggedIn: false,
+            error: ""
         };
 
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -30,32 +33,25 @@ class Login extends Component {
             Password: this.state.password
         };
 
-        // axios.post('/api/login', loginobj).then(
-        //     data => {
-        //
-        //         if (data.data.message == 'success') {
-        //
-        //             console.log('success');
-        //             console.log(data.data);
-        //             localStorage.setItem('token', data.data.content.token);
-        //             localStorage.setItem('id', data.data.content.id);
-        //             localStorage.setItem('name', data.data.content.name);
-        //             localStorage.setItem('type', data.data.content.type);
-        //             console.log('works');
-        //             this.props.history.push('/');
-        //             window.location.reload();
-        //
-        //         } else {
-        //
-        //             alert(data.data.details);
-        //         }
-        //
-        //     }
-        // ).catch(err => {
-        //
-        //     console.log(err);
-        //     alert('Server error');
-        // });
+        axios.get('http://localhost:3002/passengers/login/'+this.state.username+'/'+this.state.password)
+            .then(res => {
+                if(res.data.message==='success'){
+                    this.setState({
+                        isLoggedIn: true,
+                        error: ''
+                    })
+                    this.props.history.push('/addRide');
+                }else if(res.data.message==='fail'){
+                    this.setState({
+                        isLoggedIn: false,
+                    })
+                }
+            }, err=>{
+                this.setState({
+                    error: '*Please enter a valid username and password.'
+                })
+            });
+
 
         this.setState({
             email: '',
@@ -95,8 +91,12 @@ class Login extends Component {
                            value={this.state.password}
                            name="password">
                     </input>
-
-                    <button className="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+                    <p style={{color: 'red',}}>{this.state.error}</p>
+                    <button
+                        className="btn btn-lg btn-primary btn-block"
+                        type="submit"
+                    >Login
+                    </button>
                 </form>
 
                 <div className="mt-2">
