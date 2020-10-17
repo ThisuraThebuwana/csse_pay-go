@@ -32,17 +32,10 @@ class QRReader extends Component {
     }
 
     endRide=()=>{
-        // console.log("res-->"+this.state.result)
-        //
-        // console.log("pid-->"+this.state.result.passengerId)
-
         this.getPassengerAvailableAmount();
-
-
     };
     getPassengerAvailableAmount=()=>{
-        // let pid = this.state.result.passengerId;
-        let pid = "P0001";
+        let pid = this.state.result.passengerId;
         axios.get('http://localhost:3002/passengers/'+pid)
             .then(res => {
                 console.log("passenger data: "+ res.data[0].availableAmount)
@@ -52,7 +45,7 @@ class QRReader extends Component {
             }).then(()=>this.reducePassengerAvailableAmount());
 
 
-    }
+    };
 
     reducePassengerAvailableAmount=()=>{
         console.log("avlbAmount-->"+this.state.passengerAvailableBalance)
@@ -90,6 +83,7 @@ class QRReader extends Component {
                     style={{  margin :10}}
                 />
                 {(this.state.result!==null)?<div>
+                    <p>Passenger ID : {this.state.result.passengerId}</p>
                     <p>Route : {this.state.result.routeId}</p>
                     <p>Date : {this.state.result.date}</p>
                     <p>Start Point : {this.state.result.startPoint}</p>

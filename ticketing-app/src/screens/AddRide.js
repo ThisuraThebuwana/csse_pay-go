@@ -19,18 +19,19 @@ class AddRide extends Component {
     state = {
         passengerData:null,
         isQrLoaded: false,
-        rideId: "R0004",
+        rideId: "",
         startPoint: "",
         endPoint: "",
         ticketAmount: 0,
-        passengerID: "",
+        passengerID: "P0001",
         date: "",
         routeId: "",
-        qrId: "QR0003",
+        qrId: "",
         RoutIdList: ['154','100'],
         busStops: [],
         busStopsLoaded:false,
         passengerAvailableBalance: 0,
+        isExtending:false
     };
 
     datee;
@@ -52,13 +53,12 @@ class AddRide extends Component {
     }
 
     loadPassengerDetails = () =>{
-        let pid = 'P0001';
+        let pid = this.state.passengerID;
         axios.get('http://localhost:3002/passengers/'+pid)
             .then(res => {
                 console.log("passenger data: "+ res.data[0].availableAmount)
                 this.setState({
                     passengerData: res.data[0],
-                    passengerID: pid,
                     passengerAvailableBalance: res.data[0].availableAmount
                 });
             });
@@ -159,7 +159,24 @@ class AddRide extends Component {
                 this.setState({
                     rideId: idStr
                 })
-            }).then(this.generateQR);
+            }).then(()=>{
+
+            axios.get('http://localhost:3002/qr/')
+                .then(res => {
+                    let len = res.data.length;
+                    console.log(res.data.length);
+                    console.log(res.data[len-1]);
+                    let x = res.data[len-1].qrId.substr(5,1);
+                    let id = Number(x);
+                    id++;
+                    let idStr = "QR000"+id;
+                    console.log(idStr);
+                    this.setState({
+                        qrId: idStr
+                    })
+                }).then(this.generateQR);
+
+        });
     };
 
     generateQR = () => {
@@ -197,16 +214,64 @@ class AddRide extends Component {
         })
             .then((response) => {
                 console.log(response);
-                // this.setState({
-                //     imgData:response.data.qrUrl,
-                //     isQrLoaded: true
-                // })
             }, (error) => {
                 console.log(error);
             });
     }
 
-     routeMenuItems = this.state.RoutIdList.map(item => (
+    extendRide=()=>{
+        axios.get('http://localhost:3002/qr/')
+            .then(res => {
+                let len = res.data.length;
+                console.log(res.data.length);
+                console.log(res.data[len-1]);
+                let x = res.data[len-1].qrId.substr(5,1);
+                let id = Number(x);
+                id++;
+                let idStr = "QR000"+id;
+                console.log(idStr);
+                this.setState({
+                    qrId: idStr
+                })
+            }).then(this.QRForExtendRide);
+    };
+    QRForExtendRide=()=>{
+        //generate qr & save it to db
+        axios.post('http://localhost:3002/qr/generateqr', {
+            rideId: this.state.rideId,
+            startPoint: this.state.startPoint,
+            endPoint: this.state.endPoint,
+            ticketAmount: this.state.ticketAmount,
+            passengerID: this.state.passengerID,
+            date: this.datee,
+            routeId: this.state.routeId,
+            qrId: this.state.qrId,
+        })
+            .then((response) => {
+                console.log(response);
+                this.setState({
+                    imgData:response.data.qrUrl,
+                    isQrLoaded: true
+                })
+            }, (error) => {
+                console.log(error);
+            });
+
+
+        //save ride details to db
+        axios.patch('http://localhost:3002/rides/'+this.state.rideId, {
+            startPoint: this.state.startPoint,
+            endPoint: this.state.endPoint,
+            ticketAmount: this.state.ticketAmount,
+        })
+            .then((response) => {
+                console.log(response);
+            }, (error) => {
+                console.log(error);
+            });
+    };
+
+    routeMenuItems = this.state.RoutIdList.map(item => (
         <MenuItem key={item} value={item}>{item}</MenuItem>
     ));
     busStopsMenuItems;
@@ -231,96 +296,197 @@ class AddRide extends Component {
                 <div>
                     {(!self.isQrLoaded)?
                         <Paper elevation={3} style={{margin: 10, padding: 10 }}>
-                            <TextField
-                                id="outlined-read-only-input"
-                                label="Available Balance Credit"
-                                value={self.passengerAvailableBalance}
-                                InputProps={{
-                                    readOnly: true,
-                                }}
-                                variant="outlined"
-                                style={{width:300, marginBottom: 10}}
-                            />
-                            <FormControl required  variant="filled" style={{width:300, marginBottom: 10}}>
-                                <InputLabel id="demo-simple-select-filled-label">Route</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-filled-label"
-                                    id="demo-simple-select-filled"
-                                    value={self.routeId}
-                                    onChange={(value)=>this.handlerouteIdIDChange(value)}
 
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
-                                    {this.routeMenuItems}
-                                </Select>
-                                <FormHelperText>Required</FormHelperText>
-                            </FormControl>
-                            <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
-                                <InputLabel id="demo-simple-select-filled-label">Start</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-filled-label"
-                                    id="demo-simple-select-filled"
-                                    value={self.startPoint}
-                                    onChange={(value)=>this.handlestartPointIDChange(value)}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
+                            {(this.state.isExtending)?
+                                <div>
+                                    <TextField
+                                        id="outlined-read-only-input"
+                                        label="Available Balance Credit"
+                                        value={self.passengerAvailableBalance}
+                                        InputProps={{
+                                            readOnly: true,
+                                        }}
+                                        variant="outlined"
+                                        style={{width:300, marginBottom: 10}}
+                                    />
+                                    <FormControl disabled  variant="filled" style={{width:300, marginBottom: 10}}>
+                                        <InputLabel id="demo-simple-select-filled-label">Route</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-filled-label"
+                                            id="demo-simple-select-filled"
+                                            value={self.routeId}
+                                            onChange={(value)=>this.handlerouteIdIDChange(value)}
 
-                                    {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map(item => (
-                                        <MenuItem key={item} value={item}>{item}</MenuItem>
-                                    )):null}
-                                    {(self.busStopsLoaded)?this.busStopsMenuItems:null}
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
+                                            {this.routeMenuItems}
+                                        </Select>
+                                        <FormHelperText>Required</FormHelperText>
+                                    </FormControl>
+                                    <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
+                                        <InputLabel id="demo-simple-select-filled-label">Start</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-filled-label"
+                                            id="demo-simple-select-filled"
+                                            value={self.startPoint}
+                                            onChange={(value)=>this.handlestartPointIDChange(value)}
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
 
-                                </Select>
-                                <FormHelperText>Required</FormHelperText>
-                            </FormControl>
-                            <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
-                                <InputLabel id="demo-simple-select-filled-label">End</InputLabel>
-                                <Select
-                                    labelId="demo-simple-select-filled-label"
-                                    id="demo-simple-select-filled"
-                                    value={self.endPoint}
-                                    onChange={(value)=>this.handleendPointIDChange(value)}
-                                >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map(item => (
+                                                <MenuItem key={item} value={item}>{item}</MenuItem>
+                                            )):null}
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems:null}
 
-                                    {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map((item,index) => (
-                                        <MenuItem key={item} value={item}>{item}</MenuItem>
-                                    )):null}
-                                    {(self.busStopsLoaded)?this.busStopsMenuItems:null}
-                                </Select>
-                                <FormHelperText>Required</FormHelperText>
-                            </FormControl>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={this.generateTicketAMount}
-                                style={{marginBottom: 20}}
-                            >
-                                Generate Price
-                            </Button>
-                            <TextField
-                                id="outlined-read-only-input"
-                                label="Ticket Amount"
-                                value={self.ticketAmount}
-                                InputProps={{
-                                    readOnly: true,
-                                }}
-                                variant="outlined"
-                                style={{width:300, marginBottom: 10}}
-                            />
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={this.bookNow}
-                            >
-                                Book Now
-                            </Button>
+                                        </Select>
+                                        <FormHelperText>Required</FormHelperText>
+                                    </FormControl>
+                                    <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
+                                        <InputLabel id="demo-simple-select-filled-label">End</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-filled-label"
+                                            id="demo-simple-select-filled"
+                                            value={self.endPoint}
+                                            onChange={(value)=>this.handleendPointIDChange(value)}
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
+
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map((item,index) => (
+                                                <MenuItem key={item} value={item}>{item}</MenuItem>
+                                            )):null}
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems:null}
+                                        </Select>
+                                        <FormHelperText>Required</FormHelperText>
+                                    </FormControl>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={this.generateTicketAMount}
+                                        style={{marginBottom: 20}}
+                                    >
+                                        Generate Price
+                                    </Button>
+                                    <TextField
+                                        id="outlined-read-only-input"
+                                        label="Ticket Amount"
+                                        value={self.ticketAmount}
+                                        InputProps={{
+                                            readOnly: true,
+                                        }}
+                                        variant="outlined"
+                                        style={{width:300, marginBottom: 10}}
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={this.extendRide}
+                                    >
+                                        Update Ride
+                                    </Button>
+                                </div>
+
+                                :
+                                <div>
+                                    <TextField
+                                        id="outlined-read-only-input"
+                                        label="Available Balance Credit"
+                                        value={self.passengerAvailableBalance}
+                                        InputProps={{
+                                            readOnly: true,
+                                        }}
+                                        variant="outlined"
+                                        style={{width:300, marginBottom: 10}}
+                                    />
+                                    <FormControl required  variant="filled" style={{width:300, marginBottom: 10}}>
+                                        <InputLabel id="demo-simple-select-filled-label">Route</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-filled-label"
+                                            id="demo-simple-select-filled"
+                                            value={self.routeId}
+                                            onChange={(value)=>this.handlerouteIdIDChange(value)}
+
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
+                                            {this.routeMenuItems}
+                                        </Select>
+                                        <FormHelperText>Required</FormHelperText>
+                                    </FormControl>
+                                    <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
+                                        <InputLabel id="demo-simple-select-filled-label">Start</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-filled-label"
+                                            id="demo-simple-select-filled"
+                                            value={self.startPoint}
+                                            onChange={(value)=>this.handlestartPointIDChange(value)}
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
+
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map(item => (
+                                                <MenuItem key={item} value={item}>{item}</MenuItem>
+                                            )):null}
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems:null}
+
+                                        </Select>
+                                        <FormHelperText>Required</FormHelperText>
+                                    </FormControl>
+                                    <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
+                                        <InputLabel id="demo-simple-select-filled-label">End</InputLabel>
+                                        <Select
+                                            labelId="demo-simple-select-filled-label"
+                                            id="demo-simple-select-filled"
+                                            value={self.endPoint}
+                                            onChange={(value)=>this.handleendPointIDChange(value)}
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
+
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map((item,index) => (
+                                                <MenuItem key={item} value={item}>{item}</MenuItem>
+                                            )):null}
+                                            {(self.busStopsLoaded)?this.busStopsMenuItems:null}
+                                        </Select>
+                                        <FormHelperText>Required</FormHelperText>
+                                    </FormControl>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={this.generateTicketAMount}
+                                        style={{marginBottom: 20}}
+                                    >
+                                        Generate Price
+                                    </Button>
+                                    <TextField
+                                        id="outlined-read-only-input"
+                                        label="Ticket Amount"
+                                        value={self.ticketAmount}
+                                        InputProps={{
+                                            readOnly: true,
+                                        }}
+                                        variant="outlined"
+                                        style={{width:300, marginBottom: 10}}
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={this.bookNow}
+                                    >
+                                        Book Now
+                                    </Button>
+                                </div>
+
+                            }
+
                         </Paper>
                         :null}
                 </div>
@@ -342,7 +508,12 @@ class AddRide extends Component {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={()=>{}}
+                                onClick={()=>{
+                                    this.setState({
+                                        isExtending: true,
+                                        isQrLoaded: false
+                                    })
+                                }}
                                 style={{margin: 10}}
                             >
                                 Extend The Ride
