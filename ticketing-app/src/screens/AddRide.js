@@ -50,20 +50,20 @@ class AddRide extends Component {
 
     }
 
+    //get passenger available amount
     loadPassengerDetails = () =>{
         let pid = this.state.passengerID;
         axios.get('http://localhost:3002/passengers/'+pid)
             .then(res => {
-                console.log("passenger data: "+ res.data[0].availableAmount)
                 this.setState({
                     passengerData: res.data[0],
                     passengerAvailableBalance: res.data[0].availableAmount
                 });
             });
-    }
+    };
 
+    //set date
     setDate = ()=> {
-        console.log("date");
         let date_ob = new Date();
         let date = ("0" + date_ob.getDate()).slice(-2);
         let month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
@@ -71,19 +71,21 @@ class AddRide extends Component {
 
 
         let curDate = date + "/" + month + "/" + year;
-        console.log(curDate)
         this.setState({
                 date: curDate
-            })
+            });
         this.datee = curDate;
 
     };
 
+    //handle start point selector
     handlestartPointIDChange(event) {
         this.setState({
             startPoint: event.target.value
         });
     }
+
+    //handle end point selector
     handleendPointIDChange(event) {
         this.setState({
             endPoint: event.target.value
@@ -91,16 +93,15 @@ class AddRide extends Component {
         this.generateTicketAMount();
     }
 
+    //generate ticket amount
     generateTicketAMount=()=>{
-        console.log(this.datee)
         let start = this.state.startPoint;
         let end = this.state.endPoint;
         let sIndex, eIndex, price, priceGap = 0;
+
+        //get bus stops for this route
         let arrayy = this.state.busStops;
         if(start!==null && start!=="" && end!==null && end!==""){
-            // this.state.busStops.map(item => (
-            //     <MenuItem key={item} value={item}>{item}</MenuItem>
-            // ));
             for (let i =0 ; i<arrayy.length; i++){
                 if(arrayy[i]===start){
                     sIndex = i;
@@ -121,18 +122,20 @@ class AddRide extends Component {
         }
     };
 
+    //handle ticket amount text field
     handleticketAmountIDChange(event) {
         this.setState({
             ticketAmount: event.target.value
         });
     }
 
+    //handle route id selector
     handlerouteIdIDChange(event) {
-        // console.log(event.target.value)
         this.setState({
             routeId: event.target.value
         });
 
+        //get all the bus stops for this route
         axios.get('http://localhost:3002/routes/'+event.target.value)
             .then(res => {
                 this.setState({
@@ -143,6 +146,7 @@ class AddRide extends Component {
 
     }
 
+    //book a ride
     bookNow=()=>{
         if(this.state.routeId==="" || this.state.startPoint==="" || this.state.endPoint===""){
             this.setState({
@@ -153,31 +157,29 @@ class AddRide extends Component {
                 errorMsg: '* Please generate price'
             })
         }else {
+
+            //generate ride id
             axios.get('http://localhost:3002/rides/')
                 .then(res => {
                     let len = res.data.length;
-                    console.log(res.data.length);
-                    console.log(res.data[len - 1]);
                     let x = res.data[len - 1].rideId.substr(4, 1);
                     let id = Number(x);
                     id++;
                     let idStr = "R000" + id;
-                    console.log(idStr);
                     this.setState({
                         rideId: idStr
                     })
                 }).then(() => {
 
+
+                 //generate qr id
                 axios.get('http://localhost:3002/qr/')
                     .then(res => {
                         let len = res.data.length;
-                        console.log(res.data.length);
-                        console.log(res.data[len - 1]);
                         let x = res.data[len - 1].qrId.substr(5, 1);
                         let id = Number(x);
                         id++;
                         let idStr = "QR000" + id;
-                        console.log(idStr);
                         this.setState({
                             qrId: idStr
                         })
@@ -187,6 +189,7 @@ class AddRide extends Component {
         }
     };
 
+    //generate qr
     generateQR = () => {
         //generate qr & save it to db
         axios.post('http://localhost:3002/qr/generateqr', {
@@ -200,7 +203,6 @@ class AddRide extends Component {
             qrId: this.state.qrId,
         })
             .then((response) => {
-                console.log(response);
                 this.setState({
                     imgData:response.data.qrUrl,
                     errorMsg: '',
@@ -222,12 +224,12 @@ class AddRide extends Component {
             routeId: this.state.routeId
         })
             .then((response) => {
-                console.log(response);
             }, (error) => {
                 console.log(error);
             });
     }
 
+    //extend ride
     extendRide=()=>{
         if(this.state.startPoint==="" || this.state.endPoint===""){
             this.setState({
@@ -238,16 +240,14 @@ class AddRide extends Component {
                 errorMsg: '* Please generate price'
             })
         }else {
+            //generate qrid
             axios.get('http://localhost:3002/qr/')
                 .then(res => {
                     let len = res.data.length;
-                    console.log(res.data.length);
-                    console.log(res.data[len-1]);
                     let x = res.data[len-1].qrId.substr(5,1);
                     let id = Number(x);
                     id++;
                     let idStr = "QR000"+id;
-                    console.log(idStr);
                     this.setState({
                         qrId: idStr
                     })
