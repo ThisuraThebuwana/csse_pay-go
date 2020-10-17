@@ -14,6 +14,7 @@ class Login extends Component {
             error: ""
         };
 
+        window.passengersId = 'P0001';
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
@@ -40,6 +41,7 @@ class Login extends Component {
                         isLoggedIn: true,
                         error: ''
                     })
+                    window.passengersId = res.data.passengersId;
                     this.props.history.push('/addRide');
                 }else if(res.data.message==='fail'){
                     this.setState({
@@ -91,7 +93,7 @@ class Login extends Component {
                            value={this.state.password}
                            name="password">
                     </input>
-                    <p style={{color: 'red',}}>{this.state.error}</p>
+                    <p style={{color: 'red'}}>{this.state.error}</p>
                     <button
                         className="btn btn-lg btn-primary btn-block"
                         type="submit"

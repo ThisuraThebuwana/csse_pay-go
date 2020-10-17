@@ -14,6 +14,16 @@ import InputLabel from "@material-ui/core/InputLabel";
 import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormHelperText from "@material-ui/core/FormHelperText";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import Divider from "@material-ui/core/Divider";
+import Drawer from "@material-ui/core/Drawer";
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+import DriveEtaIcon from '@material-ui/icons/DriveEta';
+import HistoryIcon from '@material-ui/icons/History';
+import CreditCardIcon from '@material-ui/icons/CreditCard';
 
 class AddRide extends Component {
     state = {
@@ -23,7 +33,7 @@ class AddRide extends Component {
         startPoint: "",
         endPoint: "",
         ticketAmount: 0,
-        passengerID: "P0001",
+        passengerID: window.passengersId,
         date: "",
         routeId: "",
         qrId: "",
@@ -47,7 +57,6 @@ class AddRide extends Component {
 
         this.setDate();
         this.loadPassengerDetails();
-
     }
 
     //get passenger available amount
@@ -314,6 +323,60 @@ class AddRide extends Component {
         <MenuItem key={item} value={item}>{item}</MenuItem>
     ));
 
+    toggleDrawer = (anchor, open) => (event) => {
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+
+        this.setState({ ...this.state, [anchor]: open });
+    };
+
+    toggleDrawerAddRide=()=>{
+        this.toggleDrawer('left',false);
+        this.props.history.push('/addRide');
+    };
+    toggleDrawerRecharge=()=>{
+        this.toggleDrawer('left',false);
+        this.props.history.push('/recharge');
+    };
+    toggleDrawerHistory=()=>{
+        this.toggleDrawer('left',false);
+        // this.props.history.push('/history');
+    };
+    toggleDrawerLogout=()=>{
+        this.toggleDrawer('left',false);
+        this.props.history.push('/login');
+    };
+
+    list = (anchor) => (
+        <div
+            role="presentation"
+            // onClick={this.toggleDrawer(anchor, false)}
+            onKeyDown={this.toggleDrawer(anchor, false)}
+        >
+            <List>
+                {/*{['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (*/}
+                    <ListItem button onClick={this.toggleDrawerAddRide}>
+                        <ListItemIcon><DriveEtaIcon /></ListItemIcon>
+                        <ListItemText primary={'Add a Ride'} />
+                    </ListItem>
+                <ListItem button onClick={this.toggleDrawerRecharge}>
+                    <ListItemIcon><CreditCardIcon/></ListItemIcon>
+                    <ListItemText primary={'Recharge'} />
+                </ListItem>
+                <ListItem button onClick={this.toggleDrawerHistory}>
+                    <ListItemIcon><HistoryIcon /></ListItemIcon>
+                    <ListItemText primary={'History'} />
+                </ListItem>
+                <ListItem button onClick={this.toggleDrawerLogout}>
+                    <ListItemIcon><ExitToAppIcon /></ListItemIcon>
+                    <ListItemText primary={'Logout'} />
+                </ListItem>
+                {/*))}*/}
+            </List>
+
+        </div>
+    );
 
     busStopsMenuItems;
 
@@ -322,11 +385,17 @@ class AddRide extends Component {
         let routeList = this.state.RoutIdList;
         return (
             <div>
+
                 <AppBar position="static">
                     <Toolbar variant="dense">
-                        <IconButton edge="start" color="inherit" aria-label="menu">
-                            <MenuIcon />
-                        </IconButton>
+                        <div>
+                            <React.Fragment>
+                                <Button onClick={this.toggleDrawer('left', true)}><MenuIcon style={{color:'white'}} /></Button>
+                                <Drawer anchor={'left'} open={this.state['left']} onClose={this.toggleDrawer('left', false)}>
+                                    {this.list('left')}
+                                </Drawer>
+                            </React.Fragment>
+                        </div>
                         <Typography variant="h6" color="inherit">
                             Pay & Go
                         </Typography>

@@ -127,7 +127,8 @@ router.get('/login/:username/:password', (req,res,next)=>{
                 if(doc[0].password===pw){
                     console.log("match");
                     res.status(200).json({
-                        message: 'success'
+                        message: 'success',
+                        passengersId: doc[0].passengerID
                     });
                 }else{
                     console.log("not match");

@@ -6,6 +6,7 @@ import AddRide from './screens/AddRide';
 import Body from './screens/body';
 
 function App() {
+    window.passengersId = ""
   return (
     <div className="App">
       <Body/>
