@@ -31,19 +31,17 @@ class AddRide extends Component {
         busStops: [],
         busStopsLoaded:false,
         passengerAvailableBalance: 0,
-        isExtending:false
+        isExtending:false,
+        errorMsg:''
     };
 
     datee;
 
     constructor(props) {
         super(props);
-        // this.handleRideIDChange = this.handleRideIDChange.bind(this);
         this.handlestartPointIDChange = this.handlestartPointIDChange.bind(this);
         this.handleendPointIDChange = this.handleendPointIDChange.bind(this);
         this.handleticketAmountIDChange = this.handleticketAmountIDChange.bind(this);
-        // this.handlepassengerIDIDChange = this.handlepassengerIDIDChange.bind(this);
-        // this.handledateChange = this.handledateChange.bind(this);
         this.handlerouteIdIDChange = this.handlerouteIdIDChange.bind(this);
         this.setDate = this.setDate.bind(this);
 
@@ -146,37 +144,47 @@ class AddRide extends Component {
     }
 
     bookNow=()=>{
-        axios.get('http://localhost:3002/rides/')
-            .then(res => {
-                let len = res.data.length;
-                console.log(res.data.length);
-                console.log(res.data[len-1]);
-                let x = res.data[len-1].rideId.substr(4,1);
-                let id = Number(x);
-                id++;
-                let idStr = "R000"+id;
-                console.log(idStr);
-                this.setState({
-                    rideId: idStr
-                })
-            }).then(()=>{
-
-            axios.get('http://localhost:3002/qr/')
+        if(this.state.routeId==="" || this.state.startPoint==="" || this.state.endPoint===""){
+            this.setState({
+                errorMsg: '* Please select required fields'
+            })
+        }else if(this.state.ticketAmount===0){
+            this.setState({
+                errorMsg: '* Please generate price'
+            })
+        }else {
+            axios.get('http://localhost:3002/rides/')
                 .then(res => {
                     let len = res.data.length;
                     console.log(res.data.length);
-                    console.log(res.data[len-1]);
-                    let x = res.data[len-1].qrId.substr(5,1);
+                    console.log(res.data[len - 1]);
+                    let x = res.data[len - 1].rideId.substr(4, 1);
                     let id = Number(x);
                     id++;
-                    let idStr = "QR000"+id;
+                    let idStr = "R000" + id;
                     console.log(idStr);
                     this.setState({
-                        qrId: idStr
+                        rideId: idStr
                     })
-                }).then(this.generateQR);
+                }).then(() => {
 
-        });
+                axios.get('http://localhost:3002/qr/')
+                    .then(res => {
+                        let len = res.data.length;
+                        console.log(res.data.length);
+                        console.log(res.data[len - 1]);
+                        let x = res.data[len - 1].qrId.substr(5, 1);
+                        let id = Number(x);
+                        id++;
+                        let idStr = "QR000" + id;
+                        console.log(idStr);
+                        this.setState({
+                            qrId: idStr
+                        })
+                    }).then(this.generateQR);
+
+            });
+        }
     };
 
     generateQR = () => {
@@ -195,6 +203,7 @@ class AddRide extends Component {
                 console.log(response);
                 this.setState({
                     imgData:response.data.qrUrl,
+                    errorMsg: '',
                     isQrLoaded: true
                 })
             }, (error) => {
@@ -220,20 +229,30 @@ class AddRide extends Component {
     }
 
     extendRide=()=>{
-        axios.get('http://localhost:3002/qr/')
-            .then(res => {
-                let len = res.data.length;
-                console.log(res.data.length);
-                console.log(res.data[len-1]);
-                let x = res.data[len-1].qrId.substr(5,1);
-                let id = Number(x);
-                id++;
-                let idStr = "QR000"+id;
-                console.log(idStr);
-                this.setState({
-                    qrId: idStr
-                })
-            }).then(this.QRForExtendRide);
+        if(this.state.startPoint==="" || this.state.endPoint===""){
+            this.setState({
+                errorMsg: '* Please select required fields'
+            })
+        }else if(this.state.ticketAmount===0){
+            this.setState({
+                errorMsg: '* Please generate price'
+            })
+        }else {
+            axios.get('http://localhost:3002/qr/')
+                .then(res => {
+                    let len = res.data.length;
+                    console.log(res.data.length);
+                    console.log(res.data[len-1]);
+                    let x = res.data[len-1].qrId.substr(5,1);
+                    let id = Number(x);
+                    id++;
+                    let idStr = "QR000"+id;
+                    console.log(idStr);
+                    this.setState({
+                        qrId: idStr
+                    })
+                }).then(this.QRForExtendRide);
+        }
     };
     QRForExtendRide=()=>{
         //generate qr & save it to db
@@ -345,7 +364,6 @@ class AddRide extends Component {
                                             </MenuItem>
                                             {this.routeMenuItems}
                                         </Select>
-                                        <FormHelperText>Required</FormHelperText>
                                     </FormControl>
                                     <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
                                         <InputLabel id="demo-simple-select-filled-label">Start</InputLabel>
@@ -404,6 +422,7 @@ class AddRide extends Component {
                                         variant="outlined"
                                         style={{width:300, marginBottom: 10}}
                                     />
+                                    <p style={{color:'red'}}>{this.state.errorMsg}</p>
                                     <Button
                                         variant="contained"
                                         color="primary"
@@ -498,6 +517,7 @@ class AddRide extends Component {
                                         variant="outlined"
                                         style={{width:300, marginBottom: 10}}
                                     />
+                                    <p style={{color:'red'}}>{this.state.errorMsg}</p>
                                     <Button
                                         variant="contained"
                                         color="primary"
