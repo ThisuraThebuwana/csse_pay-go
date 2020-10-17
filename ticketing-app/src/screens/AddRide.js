@@ -271,9 +271,31 @@ class AddRide extends Component {
             });
     };
 
+    //cancel ride
+    cancelRide=()=>{
+        axios.delete('http://localhost:3002/qr/'+this.state.qrId)
+            .then(res => {
+                console.log(res);
+            },err=>{
+                console.log(err);
+            }).then(()=>{
+                axios.delete('http://localhost:3002/rides/'+this.state.rideId)
+                    .then(res => {
+                        console.log(res);
+                        this.setState({
+                            isQrLoadded: false
+                        })
+                    },err=>{
+                        console.log(err);
+                    });
+        });
+    };
+
     routeMenuItems = this.state.RoutIdList.map(item => (
         <MenuItem key={item} value={item}>{item}</MenuItem>
     ));
+
+
     busStopsMenuItems;
 
     render() {
@@ -521,7 +543,7 @@ class AddRide extends Component {
                             <Button
                                 variant="contained"
                                 color="primary"
-                                onClick={()=>{}}
+                                onClick={this.cancelRide}
                                     style={{margin: 10}}
                             >
                                 Cancel The Ride
