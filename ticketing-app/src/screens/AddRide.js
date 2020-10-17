@@ -145,6 +145,23 @@ class AddRide extends Component {
 
     }
 
+    bookNow=()=>{
+        axios.get('http://localhost:3002/rides/')
+            .then(res => {
+                let len = res.data.length;
+                console.log(res.data.length);
+                console.log(res.data[len-1]);
+                let x = res.data[len-1].rideId.substr(4,1);
+                let id = Number(x);
+                id++;
+                let idStr = "R000"+id;
+                console.log(idStr);
+                this.setState({
+                    rideId: idStr
+                })
+            }).then(this.generateQR);
+    };
+
     generateQR = () => {
         //generate qr & save it to db
         axios.post('http://localhost:3002/qr/generateqr', {
@@ -210,98 +227,104 @@ class AddRide extends Component {
                     </Toolbar>
                 </AppBar>
 
-                <Paper elevation={3} style={{margin: 10, padding: 10 }}>
-                    <TextField
-                        id="outlined-read-only-input"
-                        label="Available Balance Credit"
-                        value={self.passengerAvailableBalance}
-                        InputProps={{
-                            readOnly: true,
-                        }}
-                        variant="outlined"
-                        style={{width:300, marginBottom: 10}}
-                    />
-                    <FormControl required  variant="filled" style={{width:300, marginBottom: 10}}>
-                        <InputLabel id="demo-simple-select-filled-label">Route</InputLabel>
-                        <Select
-                            labelId="demo-simple-select-filled-label"
-                            id="demo-simple-select-filled"
-                            value={self.routeId}
-                            onChange={(value)=>this.handlerouteIdIDChange(value)}
 
-                        >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
-                            {this.routeMenuItems}
-                        </Select>
-                        <FormHelperText>Required</FormHelperText>
-                    </FormControl>
-                    <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
-                        <InputLabel id="demo-simple-select-filled-label">Start</InputLabel>
-                        <Select
-                            labelId="demo-simple-select-filled-label"
-                            id="demo-simple-select-filled"
-                            value={self.startPoint}
-                            onChange={(value)=>this.handlestartPointIDChange(value)}
-                        >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
+                <div>
+                    {(!self.isQrLoaded)?
+                        <Paper elevation={3} style={{margin: 10, padding: 10 }}>
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Available Balance Credit"
+                                value={self.passengerAvailableBalance}
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                variant="outlined"
+                                style={{width:300, marginBottom: 10}}
+                            />
+                            <FormControl required  variant="filled" style={{width:300, marginBottom: 10}}>
+                                <InputLabel id="demo-simple-select-filled-label">Route</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-filled-label"
+                                    id="demo-simple-select-filled"
+                                    value={self.routeId}
+                                    onChange={(value)=>this.handlerouteIdIDChange(value)}
 
-                            {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map(item => (
-                            <MenuItem key={item} value={item}>{item}</MenuItem>
-                        )):null}
-                            {(self.busStopsLoaded)?this.busStopsMenuItems:null}
+                                >
+                                    <MenuItem value="">
+                                        <em>None</em>
+                                    </MenuItem>
+                                    {this.routeMenuItems}
+                                </Select>
+                                <FormHelperText>Required</FormHelperText>
+                            </FormControl>
+                            <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
+                                <InputLabel id="demo-simple-select-filled-label">Start</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-filled-label"
+                                    id="demo-simple-select-filled"
+                                    value={self.startPoint}
+                                    onChange={(value)=>this.handlestartPointIDChange(value)}
+                                >
+                                    <MenuItem value="">
+                                        <em>None</em>
+                                    </MenuItem>
 
-                        </Select>
-                        <FormHelperText>Required</FormHelperText>
-                    </FormControl>
-                    <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
-                        <InputLabel id="demo-simple-select-filled-label">End</InputLabel>
-                        <Select
-                            labelId="demo-simple-select-filled-label"
-                            id="demo-simple-select-filled"
-                            value={self.endPoint}
-                            onChange={(value)=>this.handleendPointIDChange(value)}
-                        >
-                            <MenuItem value="">
-                                <em>None</em>
-                            </MenuItem>
+                                    {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map(item => (
+                                        <MenuItem key={item} value={item}>{item}</MenuItem>
+                                    )):null}
+                                    {(self.busStopsLoaded)?this.busStopsMenuItems:null}
 
-                            {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map((item,index) => (
-                                <MenuItem key={item} value={item}>{item}</MenuItem>
-                            )):null}
-                            {(self.busStopsLoaded)?this.busStopsMenuItems:null}
-                        </Select>
-                        <FormHelperText>Required</FormHelperText>
-                    </FormControl>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={this.generateTicketAMount}
-                        style={{marginBottom: 20}}
-                    >
-                        Generate Price
-                    </Button>
-                    <TextField
-                        id="outlined-read-only-input"
-                        label="Ticket Amount"
-                        value={self.ticketAmount}
-                        InputProps={{
-                            readOnly: true,
-                        }}
-                        variant="outlined"
-                        style={{width:300, marginBottom: 10}}
-                    />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={this.generateQR}
-                    >
-                        Book Now
-                    </Button>
-                </Paper>
+                                </Select>
+                                <FormHelperText>Required</FormHelperText>
+                            </FormControl>
+                            <FormControl required variant="filled"  style={{width:300, marginBottom: 10}}>
+                                <InputLabel id="demo-simple-select-filled-label">End</InputLabel>
+                                <Select
+                                    labelId="demo-simple-select-filled-label"
+                                    id="demo-simple-select-filled"
+                                    value={self.endPoint}
+                                    onChange={(value)=>this.handleendPointIDChange(value)}
+                                >
+                                    <MenuItem value="">
+                                        <em>None</em>
+                                    </MenuItem>
+
+                                    {(self.busStopsLoaded)?this.busStopsMenuItems = self.busStops.map((item,index) => (
+                                        <MenuItem key={item} value={item}>{item}</MenuItem>
+                                    )):null}
+                                    {(self.busStopsLoaded)?this.busStopsMenuItems:null}
+                                </Select>
+                                <FormHelperText>Required</FormHelperText>
+                            </FormControl>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={this.generateTicketAMount}
+                                style={{marginBottom: 20}}
+                            >
+                                Generate Price
+                            </Button>
+                            <TextField
+                                id="outlined-read-only-input"
+                                label="Ticket Amount"
+                                value={self.ticketAmount}
+                                InputProps={{
+                                    readOnly: true,
+                                }}
+                                variant="outlined"
+                                style={{width:300, marginBottom: 10}}
+                            />
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={this.bookNow}
+                            >
+                                Book Now
+                            </Button>
+                        </Paper>
+                        :null}
+                </div>
+
 
 
                 <div>
@@ -316,6 +339,30 @@ class AddRide extends Component {
                             <p>End Point : {this.state.endPoint}</p>
                             <p>Ticket Amount : {this.state.ticketAmount}</p>
                             <img src={this.state.imgData} alt="qr code"/>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={()=>{}}
+                                style={{margin: 10}}
+                            >
+                                Extend The Ride
+                            </Button><br/>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={()=>{}}
+                                    style={{margin: 10}}
+                            >
+                                Cancel The Ride
+                            </Button><br/>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={()=>{this.setState({isQrLoaded: false})}}
+                                style={{margin: 10}}
+                            >
+                                Book Another Ride
+                            </Button>
                         </Paper>
                         :null}
                 </div>
