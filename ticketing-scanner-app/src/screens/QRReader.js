@@ -5,13 +5,16 @@ import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import MenuIcon from '@material-ui/icons/Menu';
+import Button from "@material-ui/core/Button";
+import axios from "axios";
 
 class QRReader extends Component {
     constructor(props) {
         super(props);
         this.state = {
             delay: 300,
-            result: null
+            result: null,
+            passengerAvailableBalance:0
         };
         this.handleScan = this.handleScan.bind(this);
     }
@@ -27,6 +30,45 @@ class QRReader extends Component {
     handleError(err) {
         console.error(err);
     }
+
+    endRide=()=>{
+        // console.log("res-->"+this.state.result)
+        //
+        // console.log("pid-->"+this.state.result.passengerId)
+
+        this.getPassengerAvailableAmount();
+
+
+    };
+    getPassengerAvailableAmount=()=>{
+        // let pid = this.state.result.passengerId;
+        let pid = "P0001";
+        axios.get('http://localhost:3002/passengers/'+pid)
+            .then(res => {
+                console.log("passenger data: "+ res.data[0].availableAmount)
+                this.setState({
+                    passengerAvailableBalance: res.data[0].availableAmount
+                });
+            }).then(()=>this.reducePassengerAvailableAmount());
+
+
+    }
+
+    reducePassengerAvailableAmount=()=>{
+        console.log("avlbAmount-->"+this.state.passengerAvailableBalance)
+
+        axios.patch('http://localhost:3002/passengers/'+this.state.result.passengerId, {
+            availableAmount: this.state.passengerAvailableBalance-this.state.result.ticketAmount
+        })
+            .then((response) => {
+                console.log(response);
+                alert("Successfully ended the ride");
+            }, (error) => {
+                console.log(error);
+                alert("Error on ending the ride");
+            });
+    }
+
     render() {
         return (
             <div>
@@ -53,6 +95,14 @@ class QRReader extends Component {
                     <p>Start Point : {this.state.result.startPoint}</p>
                     <p>End Point : {this.state.result.endPoint}</p>
                     <p>Ticket Amount : {this.state.result.ticketAmount}</p>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={this.endRide}
+                        style={{marginBottom: 20}}
+                    >
+                        End Ride
+                    </Button>
                 </div>:<p>Scan QR code inside the passenger ticket</p>}
 
             </div>

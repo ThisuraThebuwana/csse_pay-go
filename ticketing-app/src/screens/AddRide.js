@@ -180,10 +180,10 @@ class AddRide extends Component {
         })
             .then((response) => {
                 console.log(response);
-                this.setState({
-                    imgData:response.data.qrUrl,
-                    isQrLoaded: true
-                })
+                // this.setState({
+                //     imgData:response.data.qrUrl,
+                //     isQrLoaded: true
+                // })
             }, (error) => {
                 console.log(error);
             });
