@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const passengerSchema = mongoose.Schema({
+const cardSchema = mongoose.Schema({
    _id: mongoose.Schema.Types.ObjectId,
    cardNumber: String,
    cardHolderName: String,
@@ -8,4 +8,4 @@ const passengerSchema = mongoose.Schema({
    cvvNumber: String,
 });
 
-module.exports = mongoose.model('Passenger', passengerSchema);
+module.exports = mongoose.model('Card', cardSchema);
