@@ -121,7 +121,7 @@ router.post('/generateqr', (req, res, next)=>{
         "startPoint": req.body.startPoint,
         "endPoint": req.body.endPoint,
         "ticketAmount": req.body.ticketAmount,
-        "passengerId": req.body.passengerId,
+        "passengerId": req.body.passengerID,
         "date": req.body.date,
         "routeId": req.body.routeId
     };

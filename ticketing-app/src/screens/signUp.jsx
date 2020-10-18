@@ -3,17 +3,19 @@ import axios from "axios";
 
 class SignUp extends Component {
 
+     passengerId="";
+
     constructor(props) {
         super(props);
         this.state = {
-            firstname: '',
-            lastname: '',
-            address: '',
-            email: '',
-            contactNumber: '',
+            name: '',
+            nic: '',
+            availableAmount: 1000,
+            holdAmount: 0,
+            mobileNo: '',
             username: '',
             password: '',
-            qrImageLink: ''
+            passengerId:''
         };
 
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -30,54 +32,56 @@ class SignUp extends Component {
 
         e.preventDefault();
 
-        axios.get(`https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${this.state.username}`,{responseType:'blob'} )
+        axios.get('http://localhost:3002/passengers/')
             .then(res => {
-                const url = window.URL.createObjectURL(new Blob([res.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', 'qr.png');
+                let len = res.data.length;
+                console.log(res.data.length);
+                console.log(res.data[len-1]);
+                let x = res.data[len-1].passengerID.substr(4,1);
+                let id = Number(x);
+                id++;
+                let idStr = "P000"+id;
+                console.log(idStr);
+                // this.setState({
+                //     passengerId: idStr
+                // })
+                this.passengerId = idStr
+            }).then(this.createAPassenger);
 
-                document.body.appendChild(link);
+    };
 
-                console.log(document.body.appendChild(link));
+    createAPassenger = ()=>{
+        //
+        // console.log(this.passengerId)
+        // console.log(this.state.username)
 
-                localStorage.setItem('qr', document.body.appendChild(link).toString());
-
-                link.click();
-                }
-            );
-
-        const obj = {
-            firstName: this.state.firstname,
-            lastName: this.state.lastname,
-            address: this.state.address,
-            email: this.state.email,
-            contactNumber: this.state.contactNumber,
-            nic: this.state.username,
+        axios.post('http://localhost:3002/passengers', {
+            passengerID: this.passengerId,
+            username: this.state.username,
             password: this.state.password,
-            qrImageLink : this.qrImageLink
-        };
-
-        axios.post('http://localhost:8080/api/passenger', obj).then(
-            res => {
-
-                // localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkMGU1OGJkYjYwMzA3NDgxZmI1YzVmYyIsInR5cGUiOiJBZG1pbiIsImlhdCI6MTU2MTM2OTk5NX0.J-NYI-x0Awqb1qxYvC4Byjo-cz8fCtyqpU6p7AHJaWs');
-                localStorage.setItem('username', res.data.username);
-                localStorage.setItem('name', res.data.firstname);
-                localStorage.setItem('type', 'Passenger');
-                this.props.history.push('/login');
-            }
-        );
-
-        this.setState({
-            firstname: '',
-            lastname: '',
-            address: '',
-            email: '',
-            contactNumber: '',
-            username: '',
-            password: ''
+            name: this.state.name,
+            nic: this.state.nic,
+            mobileNo: this.mobileNo,
+            availableAmount: this.state.availableAmount,
+            holdAmount: this.state.holdAmount
         })
+            .then((response) => {
+                console.log(response);
+
+                this.setState({
+                    name: '',
+                    nic: '',
+                    availableAmount: '',
+                    holdAmount: '',
+                    mobileNo: '',
+                    username: '',
+                    password: ''
+                });
+
+                this.props.history.push('/login');
+            }, (error) => {
+                console.log(error);
+            });
     };
 
     render() {
@@ -87,68 +91,68 @@ class SignUp extends Component {
                     <form onSubmit={this.handleSubmit}>
                         <h2>Sign Up</h2>
                         <p>Please fill this form to create an account!</p>
-                        <div className="form-group">
-                            <div className="form-group">
+                        <div className="form-group" style={{marginBottom:10}}>
+                            <div className="form-group" style={{marginBottom:10}}>
                                 <input type="text"
                                        className="form-control"
-                                       placeholder="First Name"
+                                       placeholder="Name"
                                        onChange={this.handleInputChange}
-                                       value={this.state.firstname}
-                                       name="firstname">
+                                       value={this.state.name}
+                                       name="name">
                                 </input>
                             </div>
 
-                            <div className="form-group">
+                            <div className="form-group" style={{marginBottom:10}}>
                                 <input type="text"
                                        className="form-control"
-                                       placeholder="Last Name"
+                                       placeholder="NIC"
                                        onChange={this.handleInputChange}
-                                       value={this.state.lastname}
-                                       name="lastname">
+                                       value={this.state.nic}
+                                       name="nic">
                                 </input>
                             </div>
 
-                            <div className="form-group">
+                            {/*<div className="form-group">*/}
+                                {/*<input type="text"*/}
+                                       {/*className="form-control"*/}
+                                       {/*placeholder="Available Amount"*/}
+                                       {/*onChange={this.handleInputChange}*/}
+                                       {/*value={this.state.availableAmount}*/}
+                                       {/*name="availableAmount">*/}
+                                {/*</input>*/}
+                            {/*</div>*/}
+
+                            {/*<div className="form-group">*/}
+                                {/*<input type="text"*/}
+                                       {/*className="form-control"*/}
+                                       {/*placeholder="Hold Amount"*/}
+                                       {/*onChange={this.handleInputChange}*/}
+                                       {/*value={this.state.holdAmount}*/}
+                                       {/*name="holdAmount">*/}
+                                {/*</input>*/}
+                            {/*</div>*/}
+
+                            <div className="form-group" style={{marginBottom:10}}>
                                 <input type="text"
                                        className="form-control"
-                                       placeholder="Address"
+                                       placeholder="Mobile Number"
                                        onChange={this.handleInputChange}
-                                       value={this.state.address}
-                                       name="address">
+                                       value={this.state.mobileNo}
+                                       name="mobileNo">
                                 </input>
                             </div>
 
-                            <div className="form-group">
+                            <div className="form-group" style={{marginBottom:10}}>
                                 <input type="text"
                                        className="form-control"
-                                       placeholder="Email Address"
-                                       onChange={this.handleInputChange}
-                                       value={this.state.email}
-                                       name="email">
-                                </input>
-                            </div>
-
-                            <div className="form-group">
-                                <input type="text"
-                                       className="form-control"
-                                       placeholder="Contact Number"
-                                       onChange={this.handleInputChange}
-                                       value={this.state.contactNumber}
-                                       name="contactNumber">
-                                </input>
-                            </div>
-
-                            <div className="form-group">
-                                <input type="text"
-                                       className="form-control"
-                                       placeholder="Username (NIC)"
+                                       placeholder="Username"
                                        onChange={this.handleInputChange}
                                        value={this.state.username}
                                        name="username">
                                 </input>
                             </div>
 
-                            <div className="form-group">
+                            <div className="form-group" style={{marginBottom:10}}>
                                 <input type="password"
                                        className="form-control"
                                        placeholder="Password"
@@ -159,7 +163,7 @@ class SignUp extends Component {
                                 </input>
                             </div>
 
-                            <div className="form-group">
+                            <div className="form-group" style={{marginBottom:10}}>
                                 <input type="password"
                                        className="form-control"
                                        name="confirm_password"
